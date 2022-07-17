@@ -1,0 +1,12 @@
+﻿@model IEnumerable<BlogAPIModels.Post>
+
+@{
+    ViewData["Title"] = "View";
+}
+
+<h1>View</h1>
+@foreach(var item in Model){
+    <div>
+        <div>@Html.DisplayFor(modelItem => item.Text)</div>
+    </div>
+}
