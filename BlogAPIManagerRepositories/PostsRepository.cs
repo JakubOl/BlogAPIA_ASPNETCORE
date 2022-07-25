@@ -18,23 +18,36 @@ namespace BlogAPIManagerRepositories
         }
         public async Task<List<Post>> GetAllPosts()
         {
-            var posts = await _context.Posts.Include(p => p.Comments).ToListAsync();
+            var posts = await _context.Posts.Include(p => p.Comments).Where(p => p.IsPublished == true).ToListAsync();
+            return posts;
+        }
+        public async Task<List<Post>> GetUserPosts(int userId)
+        {
+            var posts = await _context.Posts.Include(p => p.Comments).Where(p => p.AuthorId == userId).ToListAsync();
             return posts;
         }
 
         public async Task<Post?> GetPostById(int postId)
         {
-            var post = await _context.Posts.Include(p => p.Comments).FirstOrDefaultAsync(p => p.Id == postId);
+            var post = await _context.Posts.Include(p => p.Author).Include(p => p.Comments).ThenInclude(p => p.Author).FirstOrDefaultAsync(p => p.Id == postId);
 
             return post;
         }
 
         public async Task<int> CreatePost(PostDto dto, int userId)
         {
-            var post = _mapper.Map<Post>(dto);
-            await _context.Posts.AddAsync(post);
+            var newPost = new Post()
+            {
+                Title = dto.Title,
+                Text = dto.Text,
+                IsPublished = dto.IsPublished,
+                AuthorId = userId,
+            };
+
+
+            await _context.Posts.AddAsync(newPost);
             await _context.SaveChangesAsync();
-            return post.Id;
+            return newPost.Id;
         }
 
         public async Task<int> UpdatePost(int id, PostDto dto)
@@ -49,10 +62,15 @@ namespace BlogAPIManagerRepositories
             await _context.SaveChangesAsync();
             return existingPost.Id;
         }
-        public async Task<int> DeletePost(int id)
+        public async Task<int> DeletePost(int id, int userId)
         {
             var existingPost = await _context.Posts.FirstOrDefaultAsync(p => p.Id == id);
             if (existingPost is null) throw new Exception("Post not found");
+
+            if(existingPost.AuthorId != userId)
+            {
+                return -1;
+            }
 
             _context.Posts.Remove(existingPost);
             await _context.SaveChangesAsync();

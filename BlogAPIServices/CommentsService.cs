@@ -20,18 +20,18 @@ namespace BlogAPIServices
         {
             return await _commentsRepository.GetComment(postId, id);
         }
-        public async Task<int> CreateComment(int postId, CommentDto comment)
+        public async Task<int> CreateComment(int postId, CommentDto comment, int userId)
         {
-            return await _commentsRepository.CreateComment(postId, comment);
+            return await _commentsRepository.CreateComment(postId, comment, userId);
         }
         public async Task<int> UpdateComment(int postId, int id, CommentDto post)
         {
             return await _commentsRepository.UpdateComment(postId, id, post);
         }
 
-        public async Task<int> DeleteComment(int postId, int id)
+        public async Task<int> DeleteComment(int postId, int id, int userId)
         {
-            return await _commentsRepository.DeleteComment(postId, id);
+            return await _commentsRepository.DeleteComment(postId, id, userId);
         }
     }
 }

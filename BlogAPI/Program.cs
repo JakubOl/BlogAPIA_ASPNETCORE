@@ -1,9 +1,15 @@
 using BlogAPI.Middleware;
 using BlogAPIData;
+using BlogAPIData.Validators;
 using BlogAPIManagerRepositories;
+using BlogAPIModels.DtoModels;
+using BlogAPIModels.Entities;
 using BlogAPIRepositories;
 using BlogAPIServices;
+using FluentValidation;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using NLog.Web;
@@ -16,26 +22,12 @@ builder.Logging.ClearProviders();
 builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
 builder.Host.UseNLog();
 
-var authenticationSettings = new AuthenticationSettings();
-builder.Configuration.GetSection("Authentication").Bind(authenticationSettings);
+builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddSingleton(authenticationSettings);
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
+{
+    options.LoginPath = "/login";
 
-builder.Services.AddAuthentication(option =>
-{
-    option.DefaultAuthenticateScheme = "Bearer";
-    option.DefaultScheme = "Bearer";
-    option.DefaultChallengeScheme = "Bearer";
-}).AddJwtBearer(cfg =>
-{
-    cfg.RequireHttpsMetadata = false;
-    cfg.SaveToken = true;
-    cfg.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-    {
-        ValidIssuer = authenticationSettings.JwtIssuer,
-        ValidAudience = authenticationSettings.JwtIssuer,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authenticationSettings.JwtKey)),
-    };
 });
 
 builder.Services.AddControllers().AddNewtonsoftJson(options =>
@@ -54,11 +46,15 @@ builder.Services.AddScoped<ICommentsRepository, CommentsRepository>();
 builder.Services.AddScoped<ICommentsService, CommentsService>();
 
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();    
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+
+builder.Services.AddScoped<IAccountService, AccountService>();
+
+builder.Services.AddScoped<IValidator<RegisterUserDto>, RegisterUserValidator>();
 
 builder.Services.AddScoped<ErrorHandlingMiddleware>();
 
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
-builder.Services.AddHttpContextAccessor();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
@@ -70,6 +66,16 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+app.Use(async (context, next) =>
+{
+    await next();
+    if (context.Response.StatusCode == 404)
+    {
+        context.Request.Path = "/posts";
+        await next();
+    }
+});
 
 app.UseMiddleware<ErrorHandlingMiddleware>();
 
@@ -89,6 +95,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Post}/{action=Index}/{id?}");
+    pattern: "{controller=Posts}/{action=Index}/{id?}");
 
 app.Run();

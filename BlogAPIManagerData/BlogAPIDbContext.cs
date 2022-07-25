@@ -45,6 +45,20 @@ namespace BlogAPIData
             modelBuilder.Entity<Comment>().Property(c => c.Text).IsRequired();
             modelBuilder.Entity<User>().Property(u => u.Email).IsRequired();
 
+            modelBuilder.Entity<Role>(x =>
+            {
+                x.HasData(
+                    new Role()
+                    {
+                        Id = 1,
+                        Name = "User"
+                    },
+                    new Role()
+                    {
+                        Id = 2,
+                        Name = "Admin"
+                    });
+            });
         }
     }
 }

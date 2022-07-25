@@ -3,11 +3,6 @@ using BlogAPIData;
 using BlogAPIModels.DtoModels;
 using BlogAPIModels.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BlogAPIRepositories
 {
@@ -23,7 +18,7 @@ namespace BlogAPIRepositories
         }
         public async Task<List<Comment>> GetAllComments(int postId)
         {
-            var comments = await _context.Comments.Where(c => c.PostId == postId).ToListAsync();
+            var comments = await _context.Comments.Where(c => c.PostId == postId).Include(p => p.Author).ToListAsync();
             if (comments == null) throw new Exception("Could not Get Comments due to unable to find");
 
             return comments;
@@ -37,16 +32,19 @@ namespace BlogAPIRepositories
 
             return commentDto;
         }
-        public async Task<int> CreateComment(int postId, CommentDto dto)
+        public async Task<int> CreateComment(int postId, CommentDto dto, int userId)
         {
             var post = _context.Posts.FirstOrDefault(p => p.Id == postId);
 
             if (post is null)
-                throw new Exception("Restaurant not found");
+                throw new Exception("Post not found");
 
-            var comment = _mapper.Map<Comment>(dto);
-
-            comment.PostId = postId;
+            var comment = new Comment()
+            {
+                Text = dto.Text,
+                PostId = postId,
+                AuthorId = userId,
+            };
 
             _context.Comments.Add(comment);
             await _context.SaveChangesAsync();
@@ -63,16 +61,14 @@ namespace BlogAPIRepositories
             return id;
         }
 
-        public async Task<int> DeleteComment(int postId, int id)
+        public async Task<int> DeleteComment(int postId, int id, int userId)
         {
-            var existingComment = _context.Comments.SingleOrDefault(c => c.PostId == postId && c.Id == id);
-            if (existingComment is null) throw new Exception("Could not Delete Comment due to unable to find");
+            var existingComment = _context.Comments.SingleOrDefault(c => c.PostId == postId && c.Id == id && c.AuthorId == userId);
+            if (existingComment is null) return -1;
 
             await Task.Run(() => { _context.Comments.Remove(existingComment); });
             await _context.SaveChangesAsync();
             return existingComment.Id;
         }
-
-       
     }
 }

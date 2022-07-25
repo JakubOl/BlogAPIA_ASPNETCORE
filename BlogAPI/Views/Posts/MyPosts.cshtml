@@ -5,15 +5,17 @@
 }
 
 <h1>Posts</h1>
-
-
 @foreach (var item in Model)
 {
 	<div class="card mb-3" style="width: 80%;">
 		<div class="card-body">
 			<h5 class="card-title">@Html.DisplayFor(modelItem => item.Title)</h5>
 			<p class="card-text">@Html.DisplayFor(modelItem => item.Text)</p>
-			<a href="/posts/@item.Id" class="btn btn-primary">Read more</a>
+			<form method="post" action="/posts/@item.Id/delete">
+				<a href="/posts/@item.Id" class="btn btn-primary btm-sm">Read more</a>
+				<a href="/posts/@item.Id/edit" class="btn btn-primary btm-sm">Edit</a>
+				<button type="submit" class="btn btn-danger btm-sm">Delete</button>
+			</form>
 		</div>
 	</div>
 }
