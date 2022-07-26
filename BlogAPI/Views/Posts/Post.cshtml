@@ -1,0 +1,59 @@
+﻿@model BlogAPIModels.Post
+
+@{
+    ViewData["Title"] = "Post";
+    var userId = ViewData["userId"] as string;
+}
+<section class="d-flex flex-column align-items-center">
+<h1>Post</h1>
+
+
+<div class="card d-flex flex-column justify-content-center align-items-center" style="width: 50%;">
+    <div class="card-body ">
+        <p class="card-text">By: @Html.DisplayFor(modelItem => Model.Author.FirstName) @Html.DisplayFor(modelItem => Model.Author.LastName)</p>
+        <h5 class="card-title">@Html.DisplayFor(modelItem => Model.Title)</h5>
+        <p class="card-text">@Html.DisplayFor(modelItem => Model.Text)</p>
+    </div>
+
+</div>
+
+<form class="card  my-3 w-50" method="post" action="/posts/@Model.Id/comments">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="d-flex justify-content-center flex-column">
+        <div class="form-outline mb-0">
+            <textarea type="Text" id="Text" class="form-control" name="Text" required></textarea>
+            <span asp-validation-for="Text" class="text-danger"></span>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm mt-2 mw-20" onclick="refresh();">Add Comment</button>
+    </div>
+</form>
+
+<div id="comments" class="d-flex justify-content-center flex-column align-content-center">
+    @foreach (var comment in Model.Comments)
+    {
+        <div class="card mb-2">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-content-center">
+                    <div class="card-text" style="font-size: 16px;">By: @Html.DisplayFor(modelItem => comment.Author.FirstName) @Html.DisplayFor(modelItem => comment.Author.LastName)</div>
+                    <div class="card-text" style="font-size: 16px;">Created: @Html.DisplayFor(modelItem => comment.CreatedDate)</div>
+                </div>
+                <div class="d-flex justify-content-between align-content-center mt-3">
+                    <h5 class="card-title m-0">@Html.DisplayFor(modelItem => comment.Text)</h5>
+                    @if (comment.AuthorId == int.Parse(userId))
+                    {
+                        <form method="post" action="/posts/@Model.Id/comments/@comment.Id/delete">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+</section>
+<script>
+    function refresh(){
+        document.getElementById("comments").innerHTML = document.getElementById("comments").innerHTML;
+    }
+</script>

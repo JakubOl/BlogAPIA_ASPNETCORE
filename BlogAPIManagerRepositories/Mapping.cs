@@ -2,11 +2,6 @@
 using BlogAPIModels;
 using BlogAPIModels.DtoModels;
 using BlogAPIModels.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BlogAPIRepositories
 {
@@ -17,6 +12,8 @@ namespace BlogAPIRepositories
             CreateMap<PostDto, Post>();
             CreateMap<CommentDto, Comment>();
             CreateMap<Comment, CommentDto>();
+            CreateMap<RegisterUserDto, User>();
+            CreateMap<RegisterUserDto, LoginUserDto>();
         }
     }
 }

@@ -1,14 +1,12 @@
 ﻿using BlogAPIModels.DtoModels;
 using BlogAPIServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Security.Claims;
 
 namespace BlogAPI.Controllers
 {
+	[Authorize]
     [Route("/posts/{postId}/comments")]
     public class CommentsController: Controller
     {
@@ -42,18 +40,26 @@ namespace BlogAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> Create(int? postId, [FromBody] CommentDto dto)
+        public async Task<ActionResult> Create(int? postId, [FromForm] CommentDto dto)
         {
             if (postId == null)
             {
-                return NotFound();
+				return NotFound();
             }
-            await _commentsService.CreateComment((int)postId, dto);
-            return Ok();
+
+            var userId = User.FindFirstValue("userId");
+
+            if (userId is null)
+            {
+                return Redirect("/register");
+            }
+
+            await _commentsService.CreateComment((int)postId, dto, int.Parse(userId));
+            return Redirect($"/posts/{postId}");
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> Update(int? postId, int? id, [FromBody] CommentDto dto)
+        public async Task<ActionResult> Update(int? postId, int? id, [FromForm] CommentDto dto)
         {
             if (id == null || postId == null)
             {
@@ -64,16 +70,27 @@ namespace BlogAPI.Controllers
             return Ok();
         }
 
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete(int? postId, int? id)
+        [HttpPost("{id}/delete")]
+        public async Task<ActionResult> Delete(int postId, int id)
         {
             if (id == null || postId == null)
             {
                 return NotFound();
             }
+            var userId = User.FindFirstValue("userId");
 
-            await _commentsService.DeleteComment((int)postId, (int)id);
-            return Ok();
+            if (userId is null)
+            {
+                return Redirect("/register");
+            }
+
+            var commentId = await _commentsService.DeleteComment(postId, id, int.Parse(userId));
+            if(commentId == -1)
+            {
+                return NotFound();
+            }
+
+            return Redirect($"/posts/{postId}");
         }
     }
 }
