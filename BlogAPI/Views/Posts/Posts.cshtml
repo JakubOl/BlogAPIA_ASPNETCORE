@@ -2,13 +2,21 @@
 @model BlogAPIModels.DtoModels.PagedResult<Post>
 
 @{
-	ViewData["Title"] = "Posts";
+    ViewData["Title"] = "Posts";
+    var searchText = "";
+    public void SearchProducts()
+    {
+        NavigationManager.NavigateTo($"search/{searchText}/1");
+    }
 }
 
 
-<div class="container d-flex flex-column justify-content-center align-items-center">
+
+<div class="container d-flex flex-column justify-content-between align-items-center h-100vh ">
 <h1>Posts</h1>
-@foreach (var item in Model)
+
+
+@foreach (var item in Model.Items)
 {
 	<div class="card mb-3" style="width: 80%;">
 		<div class="card-body">
@@ -18,4 +26,26 @@
 		</div>
 	</div>
 }
+    <div class="mb-3">@Model.ItemsFrom - @if(Model.ItemsTo > Model.TotalItemsCount){ @Model.TotalItemsCount; }else{ @Model.ItemsTo; } Total items: @Model.TotalItemsCount Items</div>
+    <div class="mb-3">Page: @(Model.PageNumber) </div>
+    <nav aria-label="Page navigation example">
+  <ul class="pagination">
+    <li class="page-item">
+      <a class="page-link" href="/posts?pageNumber=@(Model.PageNumber-1)&pageSize=@Model.PageSize" aria-label="Previous">
+        <span aria-hidden="true">&laquo;</span>
+        <span class="sr-only">Previous</span>
+      </a>
+    </li>
+            @for(int i=0; i<@Model.TotalPages; i++)
+            {
+                <li class="page-item"><a class="page-link" href="/posts?pageNumber=@(i+1)&pageSize=@Model.PageSize">@(i+1)</a></li>
+            }
+    <li class="page-item">
+      <a class="page-link" href="/posts?pageNumber=@(Model.PageNumber+1)&pageSize=@Model.PageSize" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+        <span class="sr-only">Next</span>
+      </a>
+    </li>
+  </ul>
+</nav>
 </div>

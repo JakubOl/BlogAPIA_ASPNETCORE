@@ -24,6 +24,16 @@ namespace BlogAPIManagerRepositories
                 .Where(p => query.SearchPhrase == null || (p.Text.ToLower().Contains(query.SearchPhrase.ToLower()) || p.Title.ToLower().Contains(query.SearchPhrase.ToLower())))
                 .ToListAsync();
 
+            if(query.PageNumber < 1)
+            {
+                query.PageNumber = (int)Math.Ceiling(baseQuery.Count / (double)query.PageSize);   
+            }
+
+            if (query.PageNumber > (int)Math.Ceiling(baseQuery.Count / (double)query.PageSize))
+            {
+                query.PageNumber = 1;
+            }
+
 
             int skipPage = query.PageSize * (query.PageNumber - 1);
 

@@ -108,7 +108,7 @@ namespace BlogAPI.Controllers
             return View("Edit", post);
         }
 
-        [HttpPost("{id}")]
+        [HttpPost("{id}/edit")]
         public async Task<ActionResult> Update(int? id, [FromForm]PostDto dto)
         {
             if (id == null)
